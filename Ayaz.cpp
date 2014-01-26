@@ -22,13 +22,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ 
 
 #include "Ayaz.h"
+
+#include <CommonCore.git/stringToString.h>
+
 #include "math.h"
 
 #ifdef _QT_
 #include <QDebug>
 #endif
-
-#include <CommonCore.git/stringToString.h>
 
 namespace ArchitectureSpace {
 
@@ -97,7 +98,8 @@ streng StringDictionary::getUrlQueryString() {
     }
 
     bool HttpPost::perform() {
-        CURLcode res;
+        resultCode = (CURLcode) -1;
+
         data = new DynamicMemoryBlob();
 
         struct curl_httppost *formpost=NULL;
@@ -125,27 +127,41 @@ streng StringDictionary::getUrlQueryString() {
                 curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_WRITEDATA, this);
 //                curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_POSTFIELDS, parameters.getQueryString().c_str());
   //              curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_POST, 1);
-                if (&*uploadDataFolderR) {
-                    headers.addItem("Content-Type", "multipart/form-data");
-                    for (MobFolder::iterator it = uploadDataFolderR->begin(); it != uploadDataFolderR->end(); ++it) {
-                        streng key = it->first;
-                        MemobR memobR = it->second.convertTo<Memob>().retain();
-                        DBGX("Uploading mobfolder item with key %s, size %i", key.c_str(), memobR->getSize());
-                        curl_off_t buffSize = memobR->getSize();
-                        curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, key.c_str(), CURLFORM_BUFFER, key.c_str(),
-                                     CURLFORM_BUFFERLENGTH, buffSize, CURLFORM_BUFFERPTR, memobR->getData(), CURLFORM_END);
+                if (postFieldsString.size() > 0) {
+                    curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_POSTFIELDS, postFieldsString.c_str());
+                    headers.addItem("content-length", intToStr(postFieldsString.length()));
+//                curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_POSTFIELDS, parameters.getQueryString().c_str());
+  //              curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_POSTFIELDS, "test");
+    //            curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_POST, 1);
+                } else {
+                    if (&*uploadDataFolderR || &*uploadDataMemobR) {
+                        headers.addItem("Content-Type", "multipart/form-data");
+                        if (&*uploadDataFolderR) {
+                            for (MobFolder::iterator it = uploadDataFolderR->begin(); it != uploadDataFolderR->end(); ++it) {
+                                streng key = it->first;
+                                MemobR memobR = it->second.convertTo<Memob>().retain();
+                                DBGX("Uploading mobfolder item with key %s, size %i", key.c_str(), memobR->getSize());
+                                curl_off_t buffSize = memobR->getSize();
+                                curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, key.c_str(), CURLFORM_BUFFER, key.c_str(),
+                                             CURLFORM_BUFFERLENGTH, buffSize, CURLFORM_BUFFERPTR, memobR->getData(), CURLFORM_END);
+                            }
+                        }
+                        if (&*uploadDataMemobR) {
+                            curl_off_t buffSize = uploadDataMemobR->getSize();
+                            curl_formadd(&formpost, &lastptr, CURLFORM_BUFFERLENGTH, buffSize, CURLFORM_BUFFERPTR, uploadDataMemobR->getData(), CURLFORM_END);
+                        }
                     }
+                    curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_HTTPPOST, formpost);
                 }
-                curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_HTTPPOST, formpost);
 
                 for (unsigned int i = 0; i < headers.count(); ++i) {
                     streng h = formatString("%s: %s", headers[i].getName().c_str(), headers[i].getValue().c_str());
-                    //qDebug("Header = %s", h.c_str());
+                    DBGX("Header = %s", h.c_str());
                     headerlist = curl_slist_append(headerlist, h.c_str());
                 }
                 curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_HTTPHEADER, headerlist); /* only disable 100-continue header if explicitly requested */
     //            DEBOUT("[Performing]");
-                checkError(res = curl_easy_perform(curlHandleR->getHandle()), "Curl HttpPost");
+                checkError(resultCode = curl_easy_perform(curlHandleR->getHandle()), "Curl HttpPost");
       //          DEBOUT("\n[Perform done]");
         //        DBG2("[Perform done (%i)]", res);
             } catch (std::exception& e) {
@@ -155,12 +171,20 @@ streng StringDictionary::getUrlQueryString() {
 
             curl_formfree(formpost);
             curl_slist_free_all(headerlist);
-            return (res == CURLE_OK);
+            return (resultCode == CURLE_OK);
         } else { return false; }
     }
 
     void HttpPost::setUploadData(const MobFolderR& nUploadDataFolderR) {
         uploadDataFolderR = nUploadDataFolderR;
+    }
+
+    void HttpPost::setUploadData(const MemobR& nUploadDataMemobR) {
+        uploadDataMemobR = nUploadDataMemobR;
+    }
+
+    void HttpPost::setPostFieldsString(streng nPostFieldsStreng) {
+        postFieldsString = nPostFieldsStreng;
     }
 
 }

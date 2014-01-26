@@ -46,6 +46,10 @@ namespace ArchitectureSpace {
     private:
         size_t size;
     public:
+        Memob(streng data) {
+            size = data.length() + 1; pointer = malloc(size); memcpy(pointer, data.c_str(), size);
+            DBGX("data = %s", data.c_str());
+        }
         Memob(void* iPointer, size_t iSize) : pointer(iPointer), size(iSize) { }
         Memob() : pointer(NULL), size(0) { free(pointer); }
 

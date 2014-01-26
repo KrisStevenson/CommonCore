@@ -214,17 +214,22 @@ namespace ArchitectureSpace {
 
     class HttpPost : public HttpRequest {
     private:
+        CURLcode resultCode;
         streng url;
         StringDictionary parameters, headers;
         bool owner;
         DynamicMemoryBlob* data;
         MobFolderR uploadDataFolderR;
+        MemobR uploadDataMemobR;
+        streng postFieldsString;
     public:
         HttpPost();
         HttpPost(streng iUrl, HttpRequest* iTemplateHttpRequest = NULL);
         void addParameter(streng name, streng value) { parameters.addItem(StringDictionaryItem(name, value)); }
         void addHeader(streng name, streng value) { headers.addItem(StringDictionaryItem(name, value)); }
         bool perform();
+
+        CURLcode getResultCode() { return resultCode; }
 
         size_t curlWriteData(void* buffer, size_t size, size_t nmemb);
 //        size_t curlReadData(void* buffer, size_t size, size_t nmemb);
@@ -239,6 +244,8 @@ namespace ArchitectureSpace {
         StringDictionary& getParameters() { return parameters; }
 
         void setUploadData(const MobFolderR& nUploadDataFolderR);
+        void setUploadData(const MemobR& nUploadDataMemobR);
+        void setPostFieldsString(streng nPostFieldsStreng);
     };
 
 }

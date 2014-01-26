@@ -49,7 +49,7 @@ namespace ArchitectureSpace {
         std::vector<Test*> subTests;
 
         void execute() {
-            for (int s = 0; s < subTests.size(); ++s) {
+            for (size_t s = 0; s < subTests.size(); ++s) {
                 subTests[s]->execute();
             }
         }
@@ -75,8 +75,6 @@ namespace ArchitectureSpace {
         if (a != b) throw new TestFailureException("", t);
     }
 
-
-    bool performTests();
 
 }
 
