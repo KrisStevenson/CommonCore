@@ -101,6 +101,8 @@ namespace ArchitectureSpace {
             return ret;
         }
 
+        void setParameters(StringDictionary& nParameters) { parameters = nParameters; }
+
         void addParameter(streng name, streng value) { parameters.addItem(name, value); }
 
         streng getParameterQueryString() { return parameters.getUrlQueryString(); }

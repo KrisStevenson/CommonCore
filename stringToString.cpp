@@ -48,7 +48,8 @@ streng stos(QString s) { return s.toStdString(); }
 QString stos(streng s) { return QString::fromUtf8(s.c_str()); }
 #endif
 
-    streng intToStr(long i) { return formatString("%li", i); }
+    streng intToStr(long long i) { return formatString("%lli", i); }
+    streng uintToStr(u_int64_t i) { return formatString("%llu", i); }
 
     std::vector<streng> explode(streng s, streng separator) {
         std::vector<streng> result;

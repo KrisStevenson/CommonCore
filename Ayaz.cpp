@@ -156,7 +156,7 @@ streng StringDictionary::getUrlQueryString() {
 
                 for (unsigned int i = 0; i < headers.count(); ++i) {
                     streng h = formatString("%s: %s", headers[i].getName().c_str(), headers[i].getValue().c_str());
-                    DBGX("Header = %s", h.c_str());
+                 //   DBGX("Header = %s", h.c_str());
                     headerlist = curl_slist_append(headerlist, h.c_str());
                 }
                 curl_easy_setopt(curlHandleR->getHandle(), CURLOPT_HTTPHEADER, headerlist); /* only disable 100-continue header if explicitly requested */

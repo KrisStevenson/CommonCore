@@ -36,7 +36,8 @@ typedef std::string streng;
 
 namespace ArchitectureSpace {
 
-streng intToStr(long i);
+streng intToStr(long long i);
+streng uintToStr(u_int64_t i);
 
 #ifdef APPLE
 NSString*   stos(streng s);
